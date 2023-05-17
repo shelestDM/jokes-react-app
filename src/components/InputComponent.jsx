@@ -1,5 +1,4 @@
-import { forwardRef, useRef } from 'react';
-import Input from '@mui/base/Input';
+import { forwardRef } from 'react';
 import { styled } from '@mui/system';
 
 const CustomInput = forwardRef(function CustomInput(props, ref) {
@@ -32,7 +31,7 @@ const grey = {
 
 const StyledInputElement = styled('input')(
   ({ theme }) => `
-  width: 320px;
+  width: 80%;
   font-family: IBM Plex Sans, sans-serif;
   font-size: 0.875rem;
   font-weight: 400;

@@ -10,7 +10,7 @@ function App() {
 
   const [jokes, setJokes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState('');
 
   const fetchJokesHandler = useCallback(async () => {
     setIsLoading(true);
@@ -28,23 +28,61 @@ function App() {
     setIsLoading(false);
   },[]);
 
-  useEffect(()=>{
-    fetchJokesHandler();
-  },[fetchJokesHandler]);
+  const fetchFireBaseJokesHandler = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('https://jokes-react-app-default-rtdb.firebaseio.com/jokes.json');
+      if (!response.ok){
+        throw new Error('Something went wrong :(');
+      }
+      const jokesData = await response.json();
+      
+      let loadedJokes = [];
+
+      for (const key in jokesData) {
+        loadedJokes.push({
+          id: key,
+          type: jokesData[key].type,
+          setup: jokesData[key].setup,
+          punchline: jokesData[key].punchline,
+        })
+      }
+      console.log(loadedJokes);
+
+      setJokes(previousJokes => [...loadedJokes]);
+      setError(true);
+    } catch (e) {
+      setError(e.message);
+    }
+    setIsLoading(false);
+  },[]);
+
+  // useEffect(()=>{
+  //   fetchJokesHandler();
+  // },[fetchJokesHandler]);
 
 
-  const onAddJokeHandler = (joke) => {
-    console.log(joke);
+  async function onAddJokeHandler (joke) {
+    const response = await fetch('https://jokes-react-app-default-rtdb.firebaseio.com/jokes.json', {
+      method: 'POST',
+      body: JSON.stringify(joke),
+      headers: {
+        'Content-type' : 'application/json'
+      }
+    });
+    const data = await response.json();
+    console.log(data);
   }
 
   return (
     <Fragment>
       <AddJokes onAddJoke={onAddJokeHandler}/>
       <CustomButton type={'button'} text={'Fetch jokes'} fetchJokes={fetchJokesHandler} />
+      <CustomButton type={'button'} text={'Fetch jokes from Firebase'} fetchJokes={fetchFireBaseJokesHandler} />
       {!isLoading && jokes.length>0 && <JokesList jokes={jokes} />}
       {!isLoading && !error && <NoJokes/>}
       {isLoading && <Loader />} 
-      {!isLoading && !error && <ErrorComponent error={error}/>}
+      {!isLoading && error.length>0 && <ErrorComponent error={error}/>}
     </Fragment>
   );
 }
